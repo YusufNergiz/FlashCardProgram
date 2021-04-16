@@ -1,19 +1,40 @@
 from tkinter import *
 import random
-import pandas as pd
 from PIL import ImageTk, Image
 import pandas
-import csv
+
 
 BACKGROUND_COLOR = "#B1DDC6"
 timer = None
 current_card = {}
 
+# french_words = pandas.read_csv(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\french_words\french_words.csv")
+#
+# df = pd.DataFrame({"French": french_words.French, "English": french_words.English})
+# df_in_dict = df.to_dict("records")
+try:
+    data = pandas.read_csv(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\french_words\words_to_learn.csv")
+    to_learn = data.to_dict(orient="records")
+except FileNotFoundError:
+    data = pandas.read_csv(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\french_words\french_words.csv")
+    to_learn = data.to_dict(orient="records")
+
+
+def known_words():
+    to_learn.remove(current_card)
+    print(len(to_learn))
+    try:
+        data = pandas.DataFrame(to_learn)
+        data.to_csv(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\french_words/words_to_learn.csv", index=False)
+    except FileNotFoundError:
+        data = pandas.read_csv(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\french_words\french_words.csv")
+    next_word()
+
 
 def next_word():
     global current_card, flip_timer
     window.after_cancel(flip_timer)
-    current_card = random.choice(df_in_dict)
+    current_card = random.choice(to_learn)
     canvas.itemconfig(title_text, text="French", fill="black")
     canvas.itemconfig(words_text, text=current_card["French"], fill="black")
     canvas.itemconfig(card_background, image=front_card)
@@ -32,13 +53,6 @@ window.config(bg=BACKGROUND_COLOR, highlightthickness=0)
 window.title("FlashCard")
 flip_timer = window.after(3000, func=flip_card)
 
-french_words = pandas.read_csv(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\french_words\french_words.csv")
-
-df = pd.DataFrame({"French": french_words.French, "English": french_words.English})
-df_in_dict = df.to_dict("records")
-
-
-
 
 # Canvas #
 canvas = Canvas(width=800, height=530, bg=BACKGROUND_COLOR, highlightthickness=0)
@@ -50,10 +64,9 @@ words_text = canvas.create_text(400, 263, text="", font=("Arial", 60, "bold"))
 canvas.grid(column=0, row=1, columnspan=2)
 
 
-
 # Buttons #
 tick_image = ImageTk.PhotoImage(Image.open(r"C:\Users\yusuf\PycharmProjects\FlashCardProgram\images\right.png"))
-tick_button = Button(image=tick_image, highlightthickness=0, bg=BACKGROUND_COLOR, command=next_word)
+tick_button = Button(image=tick_image, highlightthickness=0, bg=BACKGROUND_COLOR, command=known_words)
 tick_button.config(borderwidth=0)
 tick_button.grid(column=1, row=2)
 
@@ -63,5 +76,6 @@ cross_button.config(borderwidth=0)
 cross_button.grid(column=0, row=2)
 
 next_word()
+
 
 window.mainloop()
